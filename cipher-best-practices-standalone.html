@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Algorithm Best Practices - Interactive</title>
+    
+    <!-- React & ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInBottom {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes expandWidth {
+            from { width: 0%; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(59, 130, 246, 0); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Lucide Icons as simple SVG components
+        const CheckCircle = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const AlertTriangle = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        );
+
+        const Shield = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+        );
+
+        const Key = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+        );
+
+        const Lock = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        );
+
+        const RefreshCw = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
+
+        const ArrowRight = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+        );
+
+        const Play = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const Pause = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        // Main App Component
+        function CipherBestPracticesApp() {
+            const [currentStep, setCurrentStep] = useState(0);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [animationKey, setAnimationKey] = useState(0);
+
+            const practices = [
+                {
+                    id: 1,
+                    title: 'เลือกอัลกอริทึมที่ทันสมัยและปลอดภัย',
+                    description: 'ใช้อัลกอริทึมที่ผ่านการพิสูจน์แล้วและได้รับการยอมรับจากชุมชนความปลอดภัย',
+                    icon: Shield,
+                    type: 'algorithm',
+                    color: 'from-cyan-500 to-blue-600'
+                },
+                {
+                    id: 2,
+                    title: 'ใช้ Key ที่มีความยาวเพียงพอ',
+                    description: 'Key ที่ยาวกว่าจะปลอดภัยกว่า แต่ต้องสมดุลกับ performance',
+                    icon: Key,
+                    type: 'keyLength',
+                    color: 'from-purple-500 to-pink-600'
+                },
+                {
+                    id: 3,
+                    title: 'จัดการ Key อย่างปลอดภัย',
+                    description: 'ห้าม hard-code key ในโค้ด ใช้ Key Management Service',
+                    icon: Lock,
+                    type: 'keyManagement',
+                    color: 'from-green-500 to-emerald-600'
+                },
+                {
+                    id: 4,
+                    title: 'ใช้ IV และ Salt ที่ Random',
+                    description: 'IV ต้อง random ทุกครั้ง, Salt ต้อง unique',
+                    icon: RefreshCw,
+                    type: 'ivSalt',
+                    color: 'from-orange-500 to-red-600'
+                }
+            ];
+
+            useEffect(() => {
+                let interval;
+                if (isPlaying) {
+                    interval = setInterval(() => {
+                        setCurrentStep((prev) => (prev + 1) % practices.length);
+                        setAnimationKey((prev) => prev + 1);
+                    }, 5000);
+                }
+                return () => clearInterval(interval);
+            }, [isPlaying]);
+
+            const practice = practices[currentStep];
+            const Icon = practice.icon;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-8">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-12 animate-fade-in">
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full mb-6">
+                                <Shield className="w-10 h-10" />
+                            </div>
+                            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                                Cipher Algorithm Best Practices
+                            </h1>
+                            <p className="text-xl text-gray-300">
+                                ข้อแนะนำสำคัญในการใช้งานการเข้ารหัสอย่างปลอดภัย
+                            </p>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700 overflow-hidden">
+                            {/* Progress Bar */}
+                            <div className="h-2 bg-slate-700">
+                                <div
+                                    className={`h-full bg-gradient-to-r ${practice.color} transition-all duration-500`}
+                                    style={{ width: `${((currentStep + 1) / practices.length) * 100}%` }}
+                                />
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="p-12">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-16 h-16 bg-gradient-to-br ${practice.color} rounded-2xl flex items-center justify-center`}>
+                                            <Icon className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm text-gray-400 mb-1">
+                                                ข้อที่ {currentStep + 1} / {practices.length}
+                                            </div>
+                                            <h2 className="text-3xl font-bold">{practice.title}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-xl text-gray-300 mb-12">{practice.description}</p>
+
+                                {/* Animation Content */}
+                                <div className="min-h-[400px]" key={animationKey}>
+                                    {practice.type === 'algorithm' && <AlgorithmSelection />}
+                                    {practice.type === 'keyLength' && <KeyLength />}
+                                    {practice.type === 'keyManagement' && <KeyManagement />}
+                                    {practice.type === 'ivSalt' && <IVSaltAnimation />}
+                                </div>
+                            </div>
+
+                            {/* Navigation */}
+                            <div className="border-t border-slate-700 p-8 bg-slate-800/30">
+                                <div className="flex items-center justify-between">
+                                    <button
+                                        onClick={() => {
+                                            setCurrentStep((prev) => (prev - 1 + practices.length) % practices.length);
+                                            setAnimationKey((prev) => prev + 1);
+                                        }}
+                                        className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2"
+                                    >
+                                        <ArrowRight className="w-5 h-5 rotate-180" />
+                                        ก่อนหน้า
+                                    </button>
+
+                                    <button
+                                        onClick={() => setIsPlaying(!isPlaying)}
+                                        className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 ${
+                                            isPlaying ? 'bg-red-500 hover:bg-red-600' : `bg-gradient-to-r ${practice.color}`
+                                        }`}
+                                    >
+                                        {isPlaying ? (
+                                            <>
+                                                <Pause className="w-5 h-5" />
+                                                หยุด
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Play className="w-5 h-5" />
+                                                Auto Play
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setCurrentStep((prev) => (prev + 1) % practices.length);
+                                            setAnimationKey((prev) => prev + 1);
+                                        }}
+                                        className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2"
+                                    >
+                                        ถัดไป
+                                        <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="flex justify-center gap-2 mt-6">
+                                    {practices.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                setCurrentStep(index);
+                                                setAnimationKey((prev) => prev + 1);
+                                            }}
+                                            className={`h-2 rounded-full transition-all duration-300 ${
+                                                index === currentStep ? `w-12 bg-gradient-to-r ${practice.color}` : 'w-2 bg-slate-600'
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Animation Components
+        function AlgorithmSelection() {
+            const good = ['AES-256', 'RSA-2048+', 'ChaCha20', 'ECC'];
+            const bad = ['DES', 'MD5', 'SHA-1', 'RC4'];
+
+            return (
+                <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-3">
+                            <CheckCircle className="w-7 h-7" />
+                            ✅ ควรใช้
+                        </h3>
+                        {good.map((algo, i) => (
+                            <div
+                                key={algo}
+                                className="bg-green-500/10 border-2 border-green-500 rounded-xl p-6"
+                                style={{ animation: `slideInLeft 0.6s ease-out ${i * 0.1}s both` }}
+                            >
+                                <div className="font-mono text-2xl font-bold text-green-400">{algo}</div>
+                                <div className="text-sm text-gray-400 mt-2">มาตรฐานสมัยใหม่ ปลอดภัย</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-red-400 mb-6 flex items-center gap-3">
+                            <AlertTriangle className="w-7 h-7" />
+                            ❌ ไม่ควรใช้
+                        </h3>
+                        {bad.map((algo, i) => (
+                            <div
+                                key={algo}
+                                className="bg-red-500/10 border-2 border-red-500 rounded-xl p-6 opacity-60"
+                                style={{ animation: `slideInRight 0.6s ease-out ${i * 0.1}s both` }}
+                            >
+                                <div className="font-mono text-2xl font-bold text-red-400 line-through">{algo}</div>
+                                <div className="text-sm text-gray-400 mt-2">ล้าสมัย มีช่องโหว่</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function KeyLength() {
+            const keyLengths = [
+                { bits: 128, strength: 'Basic', secure: false },
+                { bits: 192, strength: 'Good', secure: true },
+                { bits: 256, strength: 'Excellent', secure: true },
+                { bits: 512, strength: 'Overkill', secure: true }
+            ];
+
+            return (
+                <div className="space-y-6">
+                    <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold mb-2">ความยาวของ Key vs ความปลอดภัย</h3>
+                    </div>
+
+                    {keyLengths.map((item, i) => (
+                        <div
+                            key={item.bits}
+                            style={{ animation: `fadeInScale 0.6s ease-out ${i * 0.15}s both` }}
+                        >
+                            <div className={`flex items-center gap-6 p-6 rounded-xl border-2 ${
+                                item.secure ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'
+                            }`}>
+                                <div className="w-32 text-3xl font-bold font-mono">{item.bits}-bit</div>
+                                <div className="flex-1">
+                                    <div className="h-8 bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full ${item.secure ? 'bg-green-500' : 'bg-red-500'}`}
+                                            style={{
+                                                width: `${(item.bits / 512) * 100}%`,
+                                                animation: `expandWidth 1.5s ease-out ${i * 0.15}s both`
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="w-40 text-xl font-bold text-right">
+                                    {item.strength}
+                                </div>
+                                {item.secure ? <CheckCircle className="w-8 h-8 text-green-400" /> : <AlertTriangle className="w-8 h-8 text-red-400" />}
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="mt-8 p-6 bg-blue-500/10 border border-blue-500 rounded-xl">
+                        <p className="text-center text-lg">
+                            💡 <strong>แนะนำ:</strong> ใช้ AES-256 (256-bit) หรือ RSA-2048+
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        function KeyManagement() {
+            const scenarios = [
+                { name: 'Hard-coded', safe: false, risk: 'สูงมาก' },
+                { name: 'Config File', safe: false, risk: 'สูง' },
+                { name: 'Environment Var', safe: true, risk: 'ปานกลาง' },
+                { name: 'KMS/Vault', safe: true, risk: 'ต่ำ' }
+            ];
+
+            return (
+                <div className="space-y-6">
+                    <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold mb-2">วิธีการจัดเก็บ Key</h3>
+                    </div>
+
+                    {scenarios.map((scenario, i) => (
+                        <div key={scenario.name} style={{ animation: `slideInBottom 0.6s ease-out ${i * 0.2}s both` }}>
+                            <div className={`p-6 rounded-xl border-2 ${
+                                scenario.safe ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'
+                            }`}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        {scenario.safe ? <CheckCircle className="w-10 h-10 text-green-400" /> : <AlertTriangle className="w-10 h-10 text-red-400" />}
+                                        <div>
+                                            <div className="text-2xl font-bold">{scenario.name}</div>
+                                            <div className="text-gray-400 mt-1">ระดับความเสี่ยง: {scenario.risk}</div>
+                                        </div>
+                                    </div>
+                                    <div className={`px-6 py-2 rounded-full font-bold ${
+                                        scenario.safe ? 'bg-green-500' : 'bg-red-500'
+                                    }`}>
+                                        {scenario.safe ? '✓ ปลอดภัย' : '✗ อันตราย'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="mt-8 p-8 bg-cyan-500/10 border border-cyan-500 rounded-xl">
+                        <h4 className="text-xl font-bold text-cyan-400 mb-2">✅ Best Practice</h4>
+                        <p className="text-gray-300">
+                            ใช้ <strong>Key Management Service (KMS)</strong> เช่น Azure Key Vault, AWS KMS
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        function IVSaltAnimation() {
+            return (
+                <div className="space-y-8">
+                    <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold mb-2">ทำไมต้องใช้ IV และ Salt ที่ Random?</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="bg-red-500/10 border-2 border-red-500 rounded-xl p-6">
+                            <h4 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+                                <AlertTriangle />
+                                ❌ ไม่ใช้ IV/Salt
+                            </h4>
+                            <div className="space-y-3">
+                                {['Password123', 'Password123', 'Password123'].map((text, i) => (
+                                    <div key={i} className="space-y-2">
+                                        <div className="bg-slate-700 p-3 rounded-lg font-mono text-sm">{text}</div>
+                                        <div className="text-center text-red-400">↓</div>
+                                        <div className="bg-red-900/30 p-3 rounded-lg font-mono text-sm text-red-400">
+                                            5f4dcc3b5aa765d61d8327deb882cf99
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 p-3 bg-red-900/30 rounded-lg text-sm text-red-300">
+                                ⚠️ Hash เหมือนกัน! แฮกเกอร์เห็น pattern ได้
+                            </div>
+                        </div>
+
+                        <div className="bg-green-500/10 border-2 border-green-500 rounded-xl p-6">
+                            <h4 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
+                                <CheckCircle />
+                                ✅ ใช้ IV/Salt (Random)
+                            </h4>
+                            <div className="space-y-3">
+                                {[
+                                    { text: 'Password123', salt: 'a3f9c2', hash: '8k9j3h4g5f6d7s8a9' },
+                                    { text: 'Password123', salt: 'x7b2n4', hash: 'm2n3b4v5c6x7z8q9' },
+                                    { text: 'Password123', salt: 'p5q8r2', hash: 't6y7u8i9o0p1a2s3' }
+                                ].map((item, i) => (
+                                    <div key={i} className="space-y-2">
+                                        <div className="flex gap-2">
+                                            <div className="flex-1 bg-slate-700 p-3 rounded-lg font-mono text-sm">{item.text}</div>
+                                            <div className="bg-cyan-500/20 p-3 rounded-lg font-mono text-sm text-cyan-400">+ {item.salt}</div>
+                                        </div>
+                                        <div className="text-center text-green-400">↓</div>
+                                        <div className="bg-green-900/30 p-3 rounded-lg font-mono text-sm text-green-400">{item.hash}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 p-3 bg-green-900/30 rounded-lg text-sm text-green-300">
+                                ✓ Hash ต่างกัน! ปลอดภัยมากขึ้น
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-blue-500/10 border border-blue-500 rounded-xl">
+                        <h4 className="text-lg font-bold text-blue-400 mb-3">💡 Key Takeaway</h4>
+                        <div className="text-gray-300 space-y-2 text-sm">
+                            <div>▹ <strong>IV:</strong> ต้อง random ทุกครั้งที่เข้ารหัส</div>
+                            <div>▹ <strong>Salt:</strong> ต้อง unique ต่อแต่ละ user</div>
+                            <div>▹ <strong>ห้าม:</strong> ใช้ค่าคงที่หรือคาดเดาได้</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CipherBestPracticesApp />);
+    </script>
+</body>
+</html>
