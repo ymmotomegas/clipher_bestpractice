@@ -3,947 +3,516 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cipher Algorithm Best Practices</title>
+    <title>Cipher Algorithm Best Practices - Interactive</title>
+    
+    <!-- React & ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInBottom {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes expandWidth {
+            from { width: 0%; }
+        }
+        
         @keyframes pulse {
             0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
             50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(59, 130, 246, 0); }
         }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(34, 211, 238, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.8); }
-        }
-        .animate-fade-in { animation: fadeIn 1s ease-out; }
-        .animate-slide-in { animation: slideIn 0.5s ease-out; }
-        .animate-pulse-custom { animation: pulse 1.5s ease-in-out infinite; }
-        .animate-bounce-custom { animation: bounce 1s ease-in-out infinite; }
-        .animate-glow { animation: glow 2s ease-in-out infinite; }
-        .content-animation { animation: fadeIn 0.5s ease-out; }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-    <div class="p-8">
-        <div class="max-w-6xl mx-auto">
-            <!-- Header -->
-            <div class="text-center mb-12 animate-fade-in">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full mb-6 shadow-lg shadow-cyan-500/50">
-                    <i data-lucide="shield" class="w-10 h-10"></i>
-                </div>
-                <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                    Cipher Algorithm Best Practices
-                </h1>
-                <p class="text-xl text-gray-300">
-                    8 ข้อแนะนำสำคัญในการใช้งานการเข้ารหัสอย่างปลอดภัย
-                </p>
-            </div>
+<body>
+    <div id="root"></div>
 
-            <!-- Main Content -->
-            <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700 overflow-hidden">
-                <!-- Progress Bar -->
-                <div class="h-2 bg-slate-700">
-                    <div id="progressBar" class="h-full transition-all duration-500"></div>
-                </div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-                <!-- Content Area -->
-                <div class="p-12">
-                    <!-- Step Header -->
-                    <div class="flex items-center justify-between mb-8">
-                        <div class="flex items-center gap-4">
-                            <div id="iconContainer" class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg">
-                                <i id="stepIcon" class="w-8 h-8"></i>
-                            </div>
-                            <div>
-                                <div id="stepCounter" class="text-sm text-gray-400 mb-1"></div>
-                                <h2 id="stepTitle" class="text-3xl font-bold"></h2>
-                            </div>
-                        </div>
-                    </div>
+        // Lucide Icons as simple SVG components
+        const CheckCircle = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
 
-                    <p id="stepDescription" class="text-xl text-gray-300 mb-12"></p>
+        const AlertTriangle = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        );
 
-                    <!-- Animation Content -->
-                    <div id="animationContent" class="min-h-[400px]"></div>
-                </div>
+        const Shield = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+        );
 
-                <!-- Navigation Controls -->
-                <div class="border-t border-slate-700 p-8 bg-slate-800/30">
-                    <div class="flex items-center justify-between">
-                        <button id="prevBtn" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
-                            <i data-lucide="arrow-right" class="w-5 h-5 rotate-180"></i>
-                            ก่อนหน้า
-                        </button>
-                        
-                        <div class="flex items-center gap-4">
-                            <button id="playPauseBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
-                                <i id="playPauseIcon" data-lucide="play" class="w-5 h-5"></i>
-                                <span id="playPauseText">เล่นอัตโนมัติ</span>
-                            </button>
-                            
-                            <div class="flex gap-2">
-                                <!-- Step indicators will be dynamically generated -->
-                            </div>
-                        </div>
+        const Key = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+        );
 
-                        <button id="nextBtn" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
-                            ถัดไป
-                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+        const Lock = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        );
 
-                    <!-- Step Indicators -->
-                    <div id="stepIndicators" class="flex justify-center gap-2 mt-6"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+        const RefreshCw = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
 
-    <script>
-        const practices = [
-            {
-                id: 1,
-                title: 'เลือกอัลกอริทึมที่ทันสมัยและปลอดภัย',
-                description: 'ใช้อัลกอริทึมที่ผ่านการพิสูจน์แล้วและได้รับการยอมรับจากชุมชนความปลอดภัย',
-                icon: 'shield',
-                animation: 'algorithm-selection',
-                good: ['AES-256', 'RSA-2048+', 'ChaCha20', 'ECC'],
-                bad: ['DES', 'MD5', 'SHA-1', 'RC4'],
-                color: 'from-cyan-500 to-blue-600'
-            },
-            {
-                id: 2,
-                title: 'ใช้ Key ที่มีความยาวเพียงพอ',
-                description: 'Key ที่ยาวกว่าจะปลอดภัยกว่า แต่ต้องสมดุลกับ performance',
-                icon: 'key',
-                animation: 'key-length',
-                keyLengths: [
-                    { bits: 128, strength: 'Basic', secure: false },
-                    { bits: 192, strength: 'Good', secure: true },
-                    { bits: 256, strength: 'Excellent', secure: true },
-                    { bits: 512, strength: 'Overkill', secure: true }
-                ],
-                color: 'from-purple-500 to-pink-600'
-            },
-            {
-                id: 3,
-                title: 'จัดการ Key อย่างปลอดภัย',
-                description: 'ห้าม hard-code key ในโค้ด ใช้ Key Management Service และ rotate keys เป็นประจำ',
-                icon: 'lock',
-                animation: 'key-management',
-                scenarios: [
-                    { name: 'Hard-coded', safe: false, risk: 'สูงมาก' },
-                    { name: 'Config File', safe: false, risk: 'สูง' },
-                    { name: 'Environment Var', safe: true, risk: 'ปานกลาง' },
-                    { name: 'KMS/Vault', safe: true, risk: 'ต่ำ' }
-                ],
-                color: 'from-green-500 to-emerald-600'
-            },
-            {
-                id: 4,
-                title: 'ใช้ IV และ Salt ที่ Random',
-                description: 'Initialization Vector (IV) ต้อง random ทุกครั้ง, Salt ต้อง unique ต่อแต่ละ user',
-                icon: 'refresh-cw',
-                animation: 'iv-salt',
-                color: 'from-orange-500 to-red-600'
-            },
-            {
-                id: 5,
-                title: 'เลือก Mode of Operation ที่เหมาะสม',
-                description: 'ใช้ GCM หรือ CBC with HMAC, หลีกเลี่ยง ECB ที่ไม่ปลอดภัย',
-                icon: 'check-circle',
-                animation: 'mode-operation',
-                modes: [
-                    { name: 'ECB', safe: false, desc: 'เห็น pattern ได้' },
-                    { name: 'CBC', safe: true, desc: 'ปลอดภัยกว่า' },
-                    { name: 'GCM', safe: true, desc: 'ดีที่สุด + Auth' }
-                ],
-                color: 'from-blue-500 to-indigo-600'
-            },
-            {
-                id: 6,
-                title: 'ใช้ Authenticated Encryption',
-                description: 'ใช้ AEAD modes เช่น AES-GCM เพื่อตรวจสอบว่าข้อมูลไม่ถูกแก้ไข',
-                icon: 'shield',
-                animation: 'authenticated-encryption',
-                color: 'from-teal-500 to-cyan-600'
-            },
-            {
-                id: 7,
-                title: 'อัปเดต Libraries เป็นประจำ',
-                description: 'ใช้ libraries ที่เชื่อถือได้และอัปเดตเวอร์ชันล่าสุดเสมอ',
-                icon: 'refresh-cw',
-                animation: 'library-update',
-                color: 'from-violet-500 to-purple-600'
-            },
-            {
-                id: 8,
-                title: 'Test และ Audit เป็นประจำ',
-                description: 'ทำ penetration testing และ security audit อย่างสม่ำเสมอ',
-                icon: 'alert-triangle',
-                animation: 'testing-audit',
-                color: 'from-yellow-500 to-orange-600'
-            }
-        ];
+        const ArrowRight = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+        );
 
-        let currentStep = 0;
-        let isPlaying = false;
-        let playInterval = null;
+        const Play = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
 
-        function updateDisplay() {
-            const practice = practices[currentStep];
-            
-            // Update progress bar
-            const progressBar = document.getElementById('progressBar');
-            progressBar.className = `h-full bg-gradient-to-r ${practice.color} transition-all duration-500`;
-            progressBar.style.width = `${((currentStep + 1) / practices.length) * 100}%`;
-            
-            // Update icon container
-            const iconContainer = document.getElementById('iconContainer');
-            iconContainer.className = `w-16 h-16 bg-gradient-to-br ${practice.color} rounded-2xl flex items-center justify-center shadow-lg`;
-            
-            // Update step info
-            document.getElementById('stepCounter').textContent = `ข้อที่ ${currentStep + 1} / ${practices.length}`;
-            document.getElementById('stepTitle').textContent = practice.title;
-            document.getElementById('stepDescription').textContent = practice.description;
-            
-            // Update icon
-            const stepIcon = document.getElementById('stepIcon');
-            stepIcon.setAttribute('data-lucide', practice.icon);
-            lucide.createIcons();
-            
-            // Update content based on animation type
-            renderAnimation(practice);
-            
-            // Update step indicators
-            updateStepIndicators();
-        }
+        const Pause = ({ className = "w-6 h-6" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
 
-        function renderAnimation(practice) {
-            const container = document.getElementById('animationContent');
-            container.className = 'min-h-[400px] content-animation';
-            
-            switch(practice.animation) {
-                case 'algorithm-selection':
-                    container.innerHTML = renderAlgorithmSelection(practice);
-                    break;
-                case 'key-length':
-                    container.innerHTML = renderKeyLength(practice);
-                    break;
-                case 'key-management':
-                    container.innerHTML = renderKeyManagement(practice);
-                    break;
-                case 'iv-salt':
-                    container.innerHTML = renderIVSalt();
-                    break;
-                case 'mode-operation':
-                    container.innerHTML = renderModeOperation(practice);
-                    break;
-                case 'authenticated-encryption':
-                    container.innerHTML = renderAuthenticatedEncryption();
-                    break;
-                case 'library-update':
-                    container.innerHTML = renderLibraryUpdate();
-                    break;
-                case 'testing-audit':
-                    container.innerHTML = renderTestingAudit();
-                    break;
-            }
-            
-            lucide.createIcons();
-        }
+        // Main App Component
+        function CipherBestPracticesApp() {
+            const [currentStep, setCurrentStep] = useState(0);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [animationKey, setAnimationKey] = useState(0);
 
-        function renderAlgorithmSelection(practice) {
-            return `
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                                <i data-lucide="check" class="w-6 h-6"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-green-400">แนะนำ (Secure)</h3>
-                        </div>
-                        ${practice.good.map((algo, i) => `
-                            <div class="bg-green-500/10 border-2 border-green-500 rounded-xl p-6 animate-slide-in" style="animation-delay: ${i * 0.1}s">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-4">
-                                        <i data-lucide="shield-check" class="w-8 h-8 text-green-400"></i>
-                                        <span class="text-xl font-bold">${algo}</span>
-                                    </div>
-                                    <div class="px-4 py-2 bg-green-500 rounded-lg text-sm font-semibold">
-                                        ✓ ปลอดภัย
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                                <i data-lucide="x" class="w-6 h-6"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-red-400">หลีกเลี่ยง (Unsafe)</h3>
-                        </div>
-                        ${practice.bad.map((algo, i) => `
-                            <div class="bg-red-500/10 border-2 border-red-500 rounded-xl p-6 opacity-60 animate-slide-in" style="animation-delay: ${i * 0.1}s">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-4">
-                                        <i data-lucide="shield-off" class="w-8 h-8 text-red-400"></i>
-                                        <span class="text-xl font-bold line-through">${algo}</span>
-                                    </div>
-                                    <div class="px-4 py-2 bg-red-500 rounded-lg text-sm font-semibold">
-                                        ✗ เสี่ยง
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderKeyLength(practice) {
-            return `
-                <div class="space-y-6">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-purple-400 mb-2">ความยาว Key และความปลอดภัย</h3>
-                        <p class="text-gray-400">ยิ่ง Key ยาว ยิ่งปลอดภัย แต่ใช้ทรัพยากรมากขึ้น</p>
-                    </div>
-                    
-                    ${practice.keyLengths.map((key, i) => `
-                        <div class="bg-slate-700 rounded-xl p-6 animate-slide-in" style="animation-delay: ${i * 0.15}s">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 ${key.secure ? 'bg-green-500' : 'bg-yellow-500'} rounded-lg flex items-center justify-center">
-                                        <i data-lucide="${key.secure ? 'lock' : 'alert-triangle'}" class="w-6 h-6"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-2xl font-bold">${key.bits}-bit</div>
-                                        <div class="text-sm text-gray-400">${key.strength}</div>
-                                    </div>
-                                </div>
-                                <div class="px-4 py-2 ${key.secure ? 'bg-green-500' : 'bg-yellow-500'} rounded-lg font-semibold">
-                                    ${key.secure ? '✓ Recommended' : '⚠ Minimum'}
-                                </div>
-                            </div>
-                            <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
-                                <div class="h-full ${key.secure ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-yellow-400 to-orange-500'}" 
-                                     style="width: ${(key.bits / 512) * 100}%"></div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function renderKeyManagement(practice) {
-            return `
-                <div class="space-y-6">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-green-400 mb-2">วิธีการจัดเก็บ Key</h3>
-                        <p class="text-gray-400">เปรียบเทียบความปลอดภัยของแต่ละวิธี</p>
-                    </div>
-                    
-                    ${practice.scenarios.map((scenario, i) => `
-                        <div class="bg-slate-700 rounded-xl p-6 border-2 ${scenario.safe ? 'border-green-500' : 'border-red-500'} animate-slide-in" style="animation-delay: ${i * 0.15}s">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 ${scenario.safe ? 'bg-green-500' : 'bg-red-500'} rounded-lg flex items-center justify-center">
-                                        <i data-lucide="${scenario.safe ? 'shield-check' : 'shield-off'}" class="w-6 h-6"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-xl font-bold">${scenario.name}</div>
-                                        <div class="text-sm text-gray-400">ความเสี่ยง: ${scenario.risk}</div>
-                                    </div>
-                                </div>
-                                <div class="px-6 py-3 ${scenario.safe ? 'bg-green-500' : 'bg-red-500'} rounded-xl font-semibold text-lg">
-                                    ${scenario.safe ? '✓ Safe' : '✗ Unsafe'}
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                    
-                    <div class="bg-blue-500/10 border border-blue-500 rounded-xl p-6 mt-8">
-                        <div class="flex items-start gap-4">
-                            <i data-lucide="info" class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1"></i>
-                            <div>
-                                <div class="font-bold text-blue-400 mb-2">คำแนะนำ</div>
-                                <ul class="text-gray-300 space-y-1 text-sm">
-                                    <li>• ใช้ Azure Key Vault, AWS KMS, หรือ HashiCorp Vault</li>
-                                    <li>• Rotate keys ทุก 90 วัน</li>
-                                    <li>• ใช้ separate keys สำหรับแต่ละ environment</li>
-                                    <li>• Enable audit logging สำหรับการเข้าถึง keys</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderIVSalt() {
-            return `
-                <div class="space-y-8">
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="bg-slate-700 rounded-xl p-8">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-12 h-12 bg-cyan-500 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="refresh-cw" class="w-6 h-6"></i>
-                                </div>
-                                <h3 class="text-2xl font-bold text-cyan-400">Initialization Vector (IV)</h3>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="bg-slate-800 rounded-lg p-4 font-mono text-sm">
-                                    <div class="text-gray-400 mb-2">Example IV (random):</div>
-                                    <div class="text-cyan-400 animate-glow">${Array.from({length: 16}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join(' ')}</div>
-                                </div>
-                                <div class="text-gray-300 text-sm space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ต้อง random ทุกครั้งที่เข้ารหัส</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ไม่จำเป็นต้องเก็บเป็นความลับ</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ขนาดตาม algorithm (AES = 16 bytes)</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-700 rounded-xl p-8">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="key" class="w-6 h-6"></i>
-                                </div>
-                                <h3 class="text-2xl font-bold text-orange-400">Salt</h3>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="bg-slate-800 rounded-lg p-4 font-mono text-sm">
-                                    <div class="text-gray-400 mb-2">Example Salt (per user):</div>
-                                    <div class="text-orange-400 animate-glow">${Array.from({length: 8}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join(' ')}</div>
-                                </div>
-                                <div class="text-gray-300 text-sm space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ใช้สำหรับ password hashing</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>Unique ต่อแต่ละ user</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ป้องกัน rainbow table attacks</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-red-500/10 border border-red-500 rounded-xl p-6">
-                        <div class="flex items-start gap-4">
-                            <i data-lucide="alert-triangle" class="w-6 h-6 text-red-400 flex-shrink-0 mt-1"></i>
-                            <div>
-                                <div class="font-bold text-red-400 mb-2">ข้อห้าม</div>
-                                <ul class="text-gray-300 space-y-1 text-sm">
-                                    <li>• ห้ามใช้ IV ซ้ำกับ key เดียวกัน</li>
-                                    <li>• ห้ามใช้ fixed/predictable IV</li>
-                                    <li>• ห้ามใช้ salt เดียวกันสำหรับทุก user</li>
-                                    <li>• ห้ามใช้ Salt ที่สั้นเกินไป (ควร ≥ 16 bytes)</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderModeOperation(practice) {
-            return `
-                <div class="space-y-6">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-blue-400 mb-2">Modes of Operation</h3>
-                        <p class="text-gray-400">เปรียบเทียบ mode ต่างๆ สำหรับ block cipher</p>
-                    </div>
-                    
-                    ${practice.modes.map((mode, i) => `
-                        <div class="bg-slate-700 rounded-xl p-8 border-2 ${mode.safe ? 'border-green-500' : 'border-red-500'} animate-slide-in" style="animation-delay: ${i * 0.2}s">
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-16 h-16 ${mode.safe ? 'bg-green-500' : 'bg-red-500'} rounded-xl flex items-center justify-center text-2xl font-bold">
-                                        ${mode.name}
-                                    </div>
-                                    <div>
-                                        <div class="text-xl font-bold">${mode.name} Mode</div>
-                                        <div class="text-gray-400">${mode.desc}</div>
-                                    </div>
-                                </div>
-                                <div class="px-6 py-3 ${mode.safe ? 'bg-green-500' : 'bg-red-500'} rounded-xl font-semibold text-lg">
-                                    ${mode.safe ? '✓ Recommended' : '✗ Avoid'}
-                                </div>
-                            </div>
-                            
-                            ${mode.name === 'ECB' ? `
-                                <div class="bg-red-500/10 border border-red-500 rounded-lg p-4">
-                                    <div class="font-semibold text-red-400 mb-2">ปัญหา ECB:</div>
-                                    <div class="text-sm text-gray-300">
-                                        Same plaintext block → Same ciphertext block<br>
-                                        ทำให้มองเห็น pattern ในข้อมูลได้ (เช่น ใน image encryption)
-                                    </div>
-                                </div>
-                            ` : ''}
-                            
-                            ${mode.name === 'CBC' ? `
-                                <div class="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
-                                    <div class="font-semibold text-yellow-400 mb-2">คำเตือน CBC:</div>
-                                    <div class="text-sm text-gray-300">
-                                        ต้องใช้ HMAC เพิ่มเติมเพื่อ authentication<br>
-                                        Padding oracle attacks ถ้าไม่ระวัง
-                                    </div>
-                                </div>
-                            ` : ''}
-                            
-                            ${mode.name === 'GCM' ? `
-                                <div class="bg-green-500/10 border border-green-500 rounded-lg p-4">
-                                    <div class="font-semibold text-green-400 mb-2">ข้อดี GCM:</div>
-                                    <div class="text-sm text-gray-300">
-                                        • Authenticated Encryption (AEAD)<br>
-                                        • Fast performance (parallelizable)<br>
-                                        • Wide industry adoption
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function renderAuthenticatedEncryption() {
-            return `
-                <div class="space-y-8">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-teal-400 mb-2">Authenticated Encryption (AEAD)</h3>
-                        <p class="text-gray-400">การเข้ารหัสที่รวม Authentication ไว้ด้วย</p>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="bg-red-500/10 border-2 border-red-500 rounded-xl p-8">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="x" class="w-6 h-6"></i>
-                                </div>
-                                <h4 class="text-xl font-bold text-red-400">Encryption Only</h4>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="bg-slate-800 rounded-lg p-4">
-                                    <div class="text-center mb-4">
-                                        <div class="inline-block px-4 py-2 bg-blue-500 rounded-lg mb-2">
-                                            Plaintext
-                                        </div>
-                                        <div class="flex justify-center my-2">
-                                            <i data-lucide="arrow-down" class="w-6 h-6 text-gray-400"></i>
-                                        </div>
-                                        <div class="inline-block px-4 py-2 bg-purple-500 rounded-lg mb-2">
-                                            Encrypt
-                                        </div>
-                                        <div class="flex justify-center my-2">
-                                            <i data-lucide="arrow-down" class="w-6 h-6 text-gray-400"></i>
-                                        </div>
-                                        <div class="inline-block px-4 py-2 bg-green-500 rounded-lg">
-                                            Ciphertext
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-gray-300 space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ไม่มีการตรวจสอบความถูกต้อง</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>Attacker สามารถแก้ไขข้อมูลได้</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>เสี่ยงต่อ tampering attacks</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-green-500/10 border-2 border-green-500 rounded-xl p-8">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center animate-pulse-custom">
-                                    <i data-lucide="check" class="w-6 h-6"></i>
-                                </div>
-                                <h4 class="text-xl font-bold text-green-400">AEAD (Recommended)</h4>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="bg-slate-800 rounded-lg p-4">
-                                    <div class="text-center mb-4">
-                                        <div class="inline-block px-4 py-2 bg-blue-500 rounded-lg mb-2">
-                                            Plaintext
-                                        </div>
-                                        <div class="flex justify-center my-2">
-                                            <i data-lucide="arrow-down" class="w-6 h-6 text-gray-400"></i>
-                                        </div>
-                                        <div class="inline-block px-4 py-2 bg-purple-500 rounded-lg mb-2">
-                                            Encrypt + MAC
-                                        </div>
-                                        <div class="flex justify-center my-2">
-                                            <i data-lucide="arrow-down" class="w-6 h-6 text-gray-400"></i>
-                                        </div>
-                                        <div class="inline-block px-4 py-2 bg-green-500 rounded-lg">
-                                            Ciphertext + Tag
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-gray-300 space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ตรวจสอบความถูกต้องอัตโนมัติ</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>ป้องกันการแก้ไขข้อมูล</span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"></i>
-                                        <span>AES-GCM, ChaCha20-Poly1305</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-blue-500/10 border border-blue-500 rounded-xl p-6">
-                        <div class="flex items-start gap-4">
-                            <i data-lucide="lightbulb" class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1"></i>
-                            <div>
-                                <div class="font-bold text-blue-400 mb-3">AEAD Algorithms แนะนำ</div>
-                                <div class="grid md:grid-cols-2 gap-4 text-sm">
-                                    <div class="bg-slate-700 rounded-lg p-4">
-                                        <div class="font-bold text-cyan-400 mb-2">AES-GCM</div>
-                                        <div class="text-gray-300">• Fast and widely supported<br>• Hardware acceleration<br>• NIST approved</div>
-                                    </div>
-                                    <div class="bg-slate-700 rounded-lg p-4">
-                                        <div class="font-bold text-cyan-400 mb-2">ChaCha20-Poly1305</div>
-                                        <div class="text-gray-300">• Better on mobile<br>• Constant-time<br>• Used in TLS 1.3</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderLibraryUpdate() {
-            const libraries = [
-                { name: 'OpenSSL', current: '3.0.8', latest: '3.2.1', status: 'outdated', vulns: 3 },
-                { name: 'Bouncy Castle', current: '1.75', latest: '1.77', status: 'outdated', vulns: 1 },
-                { name: 'libsodium', current: '1.0.19', latest: '1.0.19', status: 'updated', vulns: 0 },
-                { name: 'NaCl', current: '20110221', latest: '20110221', status: 'updated', vulns: 0 }
-            ];
-
-            return `
-                <div class="space-y-8">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-violet-400 mb-2">Library Updates & Vulnerabilities</h3>
-                        <p class="text-gray-400">ตรวจสอบและอัปเดต crypto libraries เป็นประจำ</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        ${libraries.map((lib, i) => `
-                            <div class="bg-slate-700 rounded-xl p-6 animate-slide-in" style="animation-delay: ${i * 0.15}s">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-4 flex-1">
-                                        <div class="w-12 h-12 ${lib.status === 'updated' ? 'bg-green-500' : 'bg-yellow-500'} rounded-lg flex items-center justify-center">
-                                            <i data-lucide="${lib.status === 'updated' ? 'check-circle' : 'alert-circle'}" class="w-6 h-6"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="text-xl font-bold mb-1">${lib.name}</div>
-                                            <div class="flex items-center gap-4 text-sm">
-                                                <span class="text-gray-400">Current: <span class="text-yellow-400 font-mono">${lib.current}</span></span>
-                                                <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500"></i>
-                                                <span class="text-gray-400">Latest: <span class="text-green-400 font-mono">${lib.latest}</span></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-4">
-                                        ${lib.vulns > 0 ? `
-                                            <div class="px-4 py-2 bg-red-500 rounded-lg text-sm font-semibold flex items-center gap-2">
-                                                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                                                ${lib.vulns} CVEs
-                                            </div>
-                                        ` : `
-                                            <div class="px-4 py-2 bg-green-500 rounded-lg text-sm font-semibold flex items-center gap-2">
-                                                <i data-lucide="shield-check" class="w-4 h-4"></i>
-                                                No Issues
-                                            </div>
-                                        `}
-                                        ${lib.status === 'outdated' ? `
-                                            <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
-                                                <i data-lucide="download" class="w-4 h-4"></i>
-                                                Update
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-blue-500/10 border border-blue-500 rounded-xl p-6">
-                            <div class="flex items-start gap-4">
-                                <i data-lucide="calendar" class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1"></i>
-                                <div>
-                                    <div class="font-bold text-blue-400 mb-2">Update Schedule</div>
-                                    <ul class="text-gray-300 space-y-1 text-sm">
-                                        <li>• Check for updates: Weekly</li>
-                                        <li>• Security patches: Immediately</li>
-                                        <li>• Major versions: Review & test first</li>
-                                        <li>• Keep changelog for audits</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-green-500/10 border border-green-500 rounded-xl p-6">
-                            <div class="flex items-start gap-4">
-                                <i data-lucide="search" class="w-6 h-6 text-green-400 flex-shrink-0 mt-1"></i>
-                                <div>
-                                    <div class="font-bold text-green-400 mb-2">Monitoring Tools</div>
-                                    <ul class="text-gray-300 space-y-1 text-sm">
-                                        <li>• <strong>Dependabot</strong> - Auto PR updates</li>
-                                        <li>• <strong>Snyk</strong> - Vulnerability scanning</li>
-                                        <li>• <strong>npm audit</strong> - JS dependencies</li>
-                                        <li>• <strong>OWASP Dependency Check</strong></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-red-500/10 border border-red-500 rounded-xl p-6">
-                        <div class="flex items-start gap-4">
-                            <i data-lucide="alert-octagon" class="w-6 h-6 text-red-400 flex-shrink-0 mt-1"></i>
-                            <div>
-                                <div class="font-bold text-red-400 mb-2">ข้อควรระวัง</div>
-                                <ul class="text-gray-300 space-y-1 text-sm">
-                                    <li>• อย่าใช้ libraries ที่ไม่ได้รับการ maintain</li>
-                                    <li>• ทดสอบก่อนอัปเดต production</li>
-                                    <li>• มี rollback plan เสมอ</li>
-                                    <li>• Subscribe to security mailing lists</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderTestingAudit() {
-            const phases = [
-                { name: 'Unit Testing', icon: '🧪', desc: 'Test individual functions' },
-                { name: 'Integration Testing', icon: '🔗', desc: 'Test end-to-end flows' },
-                { name: 'Security Audit', icon: '🔍', desc: 'Code & config review' },
-                { name: 'Penetration Testing', icon: '🎯', desc: 'Attack simulation' }
-            ];
-
-            return `
-                <div class="space-y-8">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-yellow-400 mb-2">Testing & Security Audit</h3>
-                        <p class="text-gray-400">4 ขั้นตอนสำคัญในการทดสอบความปลอดภัย</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        ${phases.map((phase, i) => `
-                            <div class="bg-slate-700 rounded-xl p-6 text-center animate-slide-in" style="animation-delay: ${i * 0.1}s">
-                                <div class="text-5xl mb-3">${phase.icon}</div>
-                                <div class="font-bold text-sm mb-1">${phase.name}</div>
-                                <div class="text-xs text-gray-400">${phase.desc}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div class="bg-slate-700 rounded-xl p-8">
-                        <h4 class="text-2xl font-bold text-blue-400 mb-6 flex items-center gap-3">
-                            <span class="text-4xl">🧪</span>
-                            Unit Testing Examples
-                        </h4>
-                        <div class="space-y-4">
-                            <div class="bg-blue-500/10 border border-blue-500 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2 text-gray-300">Test: AES encryption/decryption</div>
-                                <div class="flex items-center gap-2 text-green-400">
-                                    <i data-lucide="check-circle" class="w-5 h-5"></i>
-                                    <span>✅ PASSED - 128 tests</span>
-                                </div>
-                            </div>
-                            <div class="bg-blue-500/10 border border-blue-500 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2 text-gray-300">Test: Key generation randomness</div>
-                                <div class="flex items-center gap-2 text-green-400">
-                                    <i data-lucide="check-circle" class="w-5 h-5"></i>
-                                    <span>✅ PASSED - Entropy check OK</span>
-                                </div>
-                            </div>
-                            <div class="bg-blue-500/10 border border-blue-500 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2 text-gray-300">Test: IV uniqueness</div>
-                                <div class="flex items-center gap-2 text-green-400">
-                                    <i data-lucide="check-circle" class="w-5 h-5"></i>
-                                    <span>✅ PASSED - No collisions in 10000 runs</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-slate-700 rounded-xl p-6">
-                            <h4 class="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                                <i data-lucide="wrench" class="w-5 h-5"></i>
-                                Testing Tools
-                            </h4>
-                            <div class="space-y-2 text-sm text-gray-300">
-                                <div>• <strong>Jest/xUnit</strong> - Unit testing</div>
-                                <div>• <strong>Postman/Insomnia</strong> - API testing</div>
-                                <div>• <strong>OWASP ZAP</strong> - Security scanning</div>
-                                <div>• <strong>Burp Suite</strong> - Penetration testing</div>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-700 rounded-xl p-6">
-                            <h4 class="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
-                                Audit Checklist
-                            </h4>
-                            <div class="space-y-2 text-sm text-gray-300">
-                                <div>✓ Algorithm choices documented</div>
-                                <div>✓ Key management procedures reviewed</div>
-                                <div>✓ Encryption at rest verified</div>
-                                <div>✓ TLS configuration validated</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-red-500/10 border border-red-500 rounded-xl p-6">
-                        <h4 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-3">
-                            <span class="text-3xl">🎯</span>
-                            Common Attack Vectors to Test
-                        </h4>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div class="bg-slate-700 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2">Attack: Brute Force</div>
-                                <div class="flex items-center gap-2 text-green-400 text-sm">
-                                    <i data-lucide="shield" class="w-4 h-4"></i>
-                                    <span>🛡️ BLOCKED - Rate limiting active</span>
-                                </div>
-                            </div>
-                            <div class="bg-slate-700 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2">Attack: Man-in-the-Middle</div>
-                                <div class="flex items-center gap-2 text-green-400 text-sm">
-                                    <i data-lucide="shield" class="w-4 h-4"></i>
-                                    <span>🛡️ BLOCKED - Certificate pinning</span>
-                                </div>
-                            </div>
-                            <div class="bg-slate-700 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2">Attack: Replay Attack</div>
-                                <div class="flex items-center gap-2 text-green-400 text-sm">
-                                    <i data-lucide="shield" class="w-4 h-4"></i>
-                                    <span>🛡️ BLOCKED - Nonce validation</span>
-                                </div>
-                            </div>
-                            <div class="bg-slate-700 rounded-lg p-4">
-                                <div class="font-mono text-sm mb-2">Attack: Side Channel</div>
-                                <div class="flex items-center gap-2 text-green-400 text-sm">
-                                    <i data-lucide="shield" class="w-4 h-4"></i>
-                                    <span>🛡️ BLOCKED - Constant-time ops</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function updateStepIndicators() {
-            const container = document.getElementById('stepIndicators');
-            container.innerHTML = practices.map((_, index) => `
-                <button
-                    onclick="goToStep(${index})"
-                    class="w-3 h-3 rounded-full transition-all duration-300 ${
-                        index === currentStep 
-                            ? 'bg-cyan-400 w-8' 
-                            : 'bg-slate-600 hover:bg-slate-500'
-                    }"
-                ></button>
-            `).join('');
-        }
-
-        function nextStep() {
-            currentStep = (currentStep + 1) % practices.length;
-            updateDisplay();
-        }
-
-        function prevStep() {
-            currentStep = (currentStep - 1 + practices.length) % practices.length;
-            updateDisplay();
-        }
-
-        function goToStep(step) {
-            currentStep = step;
-            updateDisplay();
-        }
-
-        function togglePlayPause() {
-            isPlaying = !isPlaying;
-            const icon = document.getElementById('playPauseIcon');
-            const text = document.getElementById('playPauseText');
-            
-            if (isPlaying) {
-                icon.setAttribute('data-lucide', 'pause');
-                text.textContent = 'หยุด';
-                playInterval = setInterval(() => {
-                    nextStep();
-                }, 5000);
-            } else {
-                icon.setAttribute('data-lucide', 'play');
-                text.textContent = 'เล่นอัตโนมัติ';
-                if (playInterval) {
-                    clearInterval(playInterval);
-                    playInterval = null;
+            const practices = [
+                {
+                    id: 1,
+                    title: 'เลือกอัลกอริทึมที่ทันสมัยและปลอดภัย',
+                    description: 'ใช้อัลกอริทึมที่ผ่านการพิสูจน์แล้วและได้รับการยอมรับจากชุมชนความปลอดภัย',
+                    icon: Shield,
+                    type: 'algorithm',
+                    color: 'from-cyan-500 to-blue-600'
+                },
+                {
+                    id: 2,
+                    title: 'ใช้ Key ที่มีความยาวเพียงพอ',
+                    description: 'Key ที่ยาวกว่าจะปลอดภัยกว่า แต่ต้องสมดุลกับ performance',
+                    icon: Key,
+                    type: 'keyLength',
+                    color: 'from-purple-500 to-pink-600'
+                },
+                {
+                    id: 3,
+                    title: 'จัดการ Key อย่างปลอดภัย',
+                    description: 'ห้าม hard-code key ในโค้ด ใช้ Key Management Service',
+                    icon: Lock,
+                    type: 'keyManagement',
+                    color: 'from-green-500 to-emerald-600'
+                },
+                {
+                    id: 4,
+                    title: 'ใช้ IV และ Salt ที่ Random',
+                    description: 'IV ต้อง random ทุกครั้ง, Salt ต้อง unique',
+                    icon: RefreshCw,
+                    type: 'ivSalt',
+                    color: 'from-orange-500 to-red-600'
                 }
-            }
-            lucide.createIcons();
+            ];
+
+            useEffect(() => {
+                let interval;
+                if (isPlaying) {
+                    interval = setInterval(() => {
+                        setCurrentStep((prev) => (prev + 1) % practices.length);
+                        setAnimationKey((prev) => prev + 1);
+                    }, 5000);
+                }
+                return () => clearInterval(interval);
+            }, [isPlaying]);
+
+            const practice = practices[currentStep];
+            const Icon = practice.icon;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-8">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-12 animate-fade-in">
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full mb-6">
+                                <Shield className="w-10 h-10" />
+                            </div>
+                            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                                Cipher Algorithm Best Practices
+                            </h1>
+                            <p className="text-xl text-gray-300">
+                                ข้อแนะนำสำคัญในการใช้งานการเข้ารหัสอย่างปลอดภัย
+                            </p>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700 overflow-hidden">
+                            {/* Progress Bar */}
+                            <div className="h-2 bg-slate-700">
+                                <div
+                                    className={`h-full bg-gradient-to-r ${practice.color} transition-all duration-500`}
+                                    style={{ width: `${((currentStep + 1) / practices.length) * 100}%` }}
+                                />
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="p-12">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-16 h-16 bg-gradient-to-br ${practice.color} rounded-2xl flex items-center justify-center`}>
+                                            <Icon className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm text-gray-400 mb-1">
+                                                ข้อที่ {currentStep + 1} / {practices.length}
+                                            </div>
+                                            <h2 className="text-3xl font-bold">{practice.title}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-xl text-gray-300 mb-12">{practice.description}</p>
+
+                                {/* Animation Content */}
+                                <div className="min-h-[400px]" key={animationKey}>
+                                    {practice.type === 'algorithm' && <AlgorithmSelection />}
+                                    {practice.type === 'keyLength' && <KeyLength />}
+                                    {practice.type === 'keyManagement' && <KeyManagement />}
+                                    {practice.type === 'ivSalt' && <IVSaltAnimation />}
+                                </div>
+                            </div>
+
+                            {/* Navigation */}
+                            <div className="border-t border-slate-700 p-8 bg-slate-800/30">
+                                <div className="flex items-center justify-between">
+                                    <button
+                                        onClick={() => {
+                                            setCurrentStep((prev) => (prev - 1 + practices.length) % practices.length);
+                                            setAnimationKey((prev) => prev + 1);
+                                        }}
+                                        className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2"
+                                    >
+                                        <ArrowRight className="w-5 h-5 rotate-180" />
+                                        ก่อนหน้า
+                                    </button>
+
+                                    <button
+                                        onClick={() => setIsPlaying(!isPlaying)}
+                                        className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 ${
+                                            isPlaying ? 'bg-red-500 hover:bg-red-600' : `bg-gradient-to-r ${practice.color}`
+                                        }`}
+                                    >
+                                        {isPlaying ? (
+                                            <>
+                                                <Pause className="w-5 h-5" />
+                                                หยุด
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Play className="w-5 h-5" />
+                                                Auto Play
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setCurrentStep((prev) => (prev + 1) % practices.length);
+                                            setAnimationKey((prev) => prev + 1);
+                                        }}
+                                        className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2"
+                                    >
+                                        ถัดไป
+                                        <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="flex justify-center gap-2 mt-6">
+                                    {practices.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                setCurrentStep(index);
+                                                setAnimationKey((prev) => prev + 1);
+                                            }}
+                                            className={`h-2 rounded-full transition-all duration-300 ${
+                                                index === currentStep ? `w-12 bg-gradient-to-r ${practice.color}` : 'w-2 bg-slate-600'
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
-        // Event listeners
-        document.getElementById('prevBtn').addEventListener('click', prevStep);
-        document.getElementById('nextBtn').addEventListener('click', nextStep);
-        document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+        // Animation Components
+        function AlgorithmSelection() {
+            const good = ['AES-256', 'RSA-2048+', 'ChaCha20', 'ECC'];
+            const bad = ['DES', 'MD5', 'SHA-1', 'RC4'];
 
-        // Initialize
-        updateDisplay();
-        lucide.createIcons();
+            return (
+                <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-3">
+                            <CheckCircle className="w-7 h-7" />
+                            ✅ ควรใช้
+                        </h3>
+                        {good.map((algo, i) => (
+                            <div
+                                key={algo}
+                                className="bg-green-500/10 border-2 border-green-500 rounded-xl p-6"
+                                style={{ animation: `slideInLeft 0.6s ease-out ${i * 0.1}s both` }}
+                            >
+                                <div className="font-mono text-2xl font-bold text-green-400">{algo}</div>
+                                <div className="text-sm text-gray-400 mt-2">มาตรฐานสมัยใหม่ ปลอดภัย</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-red-400 mb-6 flex items-center gap-3">
+                            <AlertTriangle className="w-7 h-7" />
+                            ❌ ไม่ควรใช้
+                        </h3>
+                        {bad.map((algo, i) => (
+                            <div
+                                key={algo}
+                                className="bg-red-500/10 border-2 border-red-500 rounded-xl p-6 opacity-60"
+                                style={{ animation: `slideInRight 0.6s ease-out ${i * 0.1}s both` }}
+                            >
+                                <div className="font-mono text-2xl font-bold text-red-400 line-through">{algo}</div>
+                                <div className="text-sm text-gray-400 mt-2">ล้าสมัย มีช่องโหว่</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function KeyLength() {
+            const keyLengths = [
+                { bits: 128, strength: 'Basic', secure: false },
+                { bits: 192, strength: 'Good', secure: true },
+                { bits: 256, strength: 'Excellent', secure: true },
+                { bits: 512, strength: 'Overkill', secure: true }
+            ];
+
+            return (
+                <div className="space-y-6">
+                    <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold mb-2">ความยาวของ Key vs ความปลอดภัย</h3>
+                    </div>
+
+                    {keyLengths.map((item, i) => (
+                        <div
+                            key={item.bits}
+                            style={{ animation: `fadeInScale 0.6s ease-out ${i * 0.15}s both` }}
+                        >
+                            <div className={`flex items-center gap-6 p-6 rounded-xl border-2 ${
+                                item.secure ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'
+                            }`}>
+                                <div className="w-32 text-3xl font-bold font-mono">{item.bits}-bit</div>
+                                <div className="flex-1">
+                                    <div className="h-8 bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full ${item.secure ? 'bg-green-500' : 'bg-red-500'}`}
+                                            style={{
+                                                width: `${(item.bits / 512) * 100}%`,
+                                                animation: `expandWidth 1.5s ease-out ${i * 0.15}s both`
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="w-40 text-xl font-bold text-right">
+                                    {item.strength}
+                                </div>
+                                {item.secure ? <CheckCircle className="w-8 h-8 text-green-400" /> : <AlertTriangle className="w-8 h-8 text-red-400" />}
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="mt-8 p-6 bg-blue-500/10 border border-blue-500 rounded-xl">
+                        <p className="text-center text-lg">
+                            💡 <strong>แนะนำ:</strong> ใช้ AES-256 (256-bit) หรือ RSA-2048+
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        function KeyManagement() {
+            const scenarios = [
+                { name: 'Hard-coded', safe: false, risk: 'สูงมาก' },
+                { name: 'Config File', safe: false, risk: 'สูง' },
+                { name: 'Environment Var', safe: true, risk: 'ปานกลาง' },
+                { name: 'KMS/Vault', safe: true, risk: 'ต่ำ' }
+            ];
+
+            return (
+                <div className="space-y-6">
+                    <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold mb-2">วิธีการจัดเก็บ Key</h3>
+                    </div>
+
+                    {scenarios.map((scenario, i) => (
+                        <div key={scenario.name} style={{ animation: `slideInBottom 0.6s ease-out ${i * 0.2}s both` }}>
+                            <div className={`p-6 rounded-xl border-2 ${
+                                scenario.safe ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'
+                            }`}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        {scenario.safe ? <CheckCircle className="w-10 h-10 text-green-400" /> : <AlertTriangle className="w-10 h-10 text-red-400" />}
+                                        <div>
+                                            <div className="text-2xl font-bold">{scenario.name}</div>
+                                            <div className="text-gray-400 mt-1">ระดับความเสี่ยง: {scenario.risk}</div>
+                                        </div>
+                                    </div>
+                                    <div className={`px-6 py-2 rounded-full font-bold ${
+                                        scenario.safe ? 'bg-green-500' : 'bg-red-500'
+                                    }`}>
+                                        {scenario.safe ? '✓ ปลอดภัย' : '✗ อันตราย'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="mt-8 p-8 bg-cyan-500/10 border border-cyan-500 rounded-xl">
+                        <h4 className="text-xl font-bold text-cyan-400 mb-2">✅ Best Practice</h4>
+                        <p className="text-gray-300">
+                            ใช้ <strong>Key Management Service (KMS)</strong> เช่น Azure Key Vault, AWS KMS
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        function IVSaltAnimation() {
+            return (
+                <div className="space-y-8">
+                    <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold mb-2">ทำไมต้องใช้ IV และ Salt ที่ Random?</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="bg-red-500/10 border-2 border-red-500 rounded-xl p-6">
+                            <h4 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+                                <AlertTriangle />
+                                ❌ ไม่ใช้ IV/Salt
+                            </h4>
+                            <div className="space-y-3">
+                                {['Password123', 'Password123', 'Password123'].map((text, i) => (
+                                    <div key={i} className="space-y-2">
+                                        <div className="bg-slate-700 p-3 rounded-lg font-mono text-sm">{text}</div>
+                                        <div className="text-center text-red-400">↓</div>
+                                        <div className="bg-red-900/30 p-3 rounded-lg font-mono text-sm text-red-400">
+                                            5f4dcc3b5aa765d61d8327deb882cf99
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 p-3 bg-red-900/30 rounded-lg text-sm text-red-300">
+                                ⚠️ Hash เหมือนกัน! แฮกเกอร์เห็น pattern ได้
+                            </div>
+                        </div>
+
+                        <div className="bg-green-500/10 border-2 border-green-500 rounded-xl p-6">
+                            <h4 className="text-xl font-bold text-green-400 mb-4 flex items-center gap-2">
+                                <CheckCircle />
+                                ✅ ใช้ IV/Salt (Random)
+                            </h4>
+                            <div className="space-y-3">
+                                {[
+                                    { text: 'Password123', salt: 'a3f9c2', hash: '8k9j3h4g5f6d7s8a9' },
+                                    { text: 'Password123', salt: 'x7b2n4', hash: 'm2n3b4v5c6x7z8q9' },
+                                    { text: 'Password123', salt: 'p5q8r2', hash: 't6y7u8i9o0p1a2s3' }
+                                ].map((item, i) => (
+                                    <div key={i} className="space-y-2">
+                                        <div className="flex gap-2">
+                                            <div className="flex-1 bg-slate-700 p-3 rounded-lg font-mono text-sm">{item.text}</div>
+                                            <div className="bg-cyan-500/20 p-3 rounded-lg font-mono text-sm text-cyan-400">+ {item.salt}</div>
+                                        </div>
+                                        <div className="text-center text-green-400">↓</div>
+                                        <div className="bg-green-900/30 p-3 rounded-lg font-mono text-sm text-green-400">{item.hash}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 p-3 bg-green-900/30 rounded-lg text-sm text-green-300">
+                                ✓ Hash ต่างกัน! ปลอดภัยมากขึ้น
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-blue-500/10 border border-blue-500 rounded-xl">
+                        <h4 className="text-lg font-bold text-blue-400 mb-3">💡 Key Takeaway</h4>
+                        <div className="text-gray-300 space-y-2 text-sm">
+                            <div>▹ <strong>IV:</strong> ต้อง random ทุกครั้งที่เข้ารหัส</div>
+                            <div>▹ <strong>Salt:</strong> ต้อง unique ต่อแต่ละ user</div>
+                            <div>▹ <strong>ห้าม:</strong> ใช้ค่าคงที่หรือคาดเดาได้</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CipherBestPracticesApp />);
     </script>
 </body>
 </html>
